@@ -1,0 +1,6 @@
+{
+  "name": "Transportation Fleet Portfolio Manager",
+  "description": "An interactive investment portfolio and financial modeling manager for transportation businesses. Formulate acquisition trials, trace real-time ROI/RII/MOIC, handle cartoonized or background-removed vehicle imagery, view dividend projections, and export PDF reports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
