@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net (Allow nothing by default)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Standard cryptographic helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Vehicle schema validation helper
+    function isValidVehicle(vehicle) {
+      return vehicle.id is string
+        && vehicle.id.size() <= 128
+        && vehicle.name is string
+        && vehicle.name.size() > 0
+        && vehicle.name.size() <= 200
+        && vehicle.type is string
+        && vehicle.type.size() <= 100
+        && vehicle.userId is string
+        && vehicle.userId == request.auth.uid
+        && (vehicle.purchasePrice is number || vehicle.purchasePrice is int)
+        && vehicle.purchasePrice >= 0;
+    }
+
+    // Users and private nested vehicles routing
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /vehicles/{vehicleId} {
+        // Prevent arbitrary string lengths and ID poisoning on paths
+        allow read: if isOwner(userId) && isValidId(vehicleId);
+        
+        allow create: if isOwner(userId) 
+          && isValidId(vehicleId)
+          && isValidVehicle(incoming())
+          && incoming().id == vehicleId;
+
+        allow update: if isOwner(userId)
+          && isValidId(vehicleId)
+          && isValidVehicle(incoming())
+          && incoming().userId == existing().userId
+          && incoming().id == existing().id;
+
+        allow delete: if isOwner(userId) && isValidId(vehicleId);
+      }
+    }
+  }
+}

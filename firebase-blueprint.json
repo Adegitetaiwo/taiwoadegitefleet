@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "A modeled transportation asset with financial variables and inputs",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the vehicle"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name given to the vehicle modeled"
+        },
+        "type": {
+          "type": "string",
+          "description": "Vehicle preset type"
+        },
+        "purchasePrice": {
+          "type": "number"
+        },
+        "annualDepreciationRate": {
+          "type": "number"
+        },
+        "expectedMaintenanceMonthly": {
+          "type": "number"
+        },
+        "fuelPriceRate": {
+          "type": "number"
+        },
+        "insurancePremiumMonthly": {
+          "type": "number"
+        },
+        "annualDistanceMiles": {
+          "type": "number"
+        },
+        "monthlyRevenue": {
+          "type": "number"
+        },
+        "inflationRate": {
+          "type": "number"
+        },
+        "dividendPayoutRate": {
+          "type": "number"
+        },
+        "imageOption": {
+          "type": "string"
+        },
+        "originalImage": {
+          "type": "string"
+        },
+        "processedImage": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "salvageValuePercent": {
+          "type": "number"
+        },
+        "driverMonthlySalary": {
+          "type": "number"
+        },
+        "leviesAndTaxesMonthly": {
+          "type": "number"
+        },
+        "investorSharePercent": {
+          "type": "number"
+        },
+        "rentalTenorYears": {
+          "type": "number"
+        },
+        "fixedDailyRent": {
+          "type": "number"
+        },
+        "passOpexToRenter": {
+          "type": "boolean"
+        },
+        "fuelConsumptionDaily": {
+          "type": "number"
+        },
+        "fuelPricePerLiter": {
+          "type": "number"
+        },
+        "activeDaysPerYear": {
+          "type": "number"
+        },
+        "runAsCompany": {
+          "type": "boolean"
+        },
+        "userId": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name", "userId", "purchasePrice", "type"]
+    }
+  },
+  "firestore": {
+    "users/{userId}/vehicles/{vehicleId}": {
+      "schema": "Vehicle",
+      "description": "Isolated collections representing modeled transport assets owned by specific authenticated users"
+    }
+  }
+}

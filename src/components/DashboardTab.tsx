@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   TrendingUp,
   Coins,
@@ -48,6 +48,15 @@ export default function DashboardTab({
   onNavigateToInputs 
 }: DashboardTabProps) {
   
+  // Interactive chart series visibility states with one key metric enabled by default
+  const [showDividends, setShowDividends] = useState(true);
+  const [showTCO, setShowTCO] = useState(false);
+  const [showResale, setShowResale] = useState(true);
+
+  const [showROI, setShowROI] = useState(true);
+  const [showIRR, setShowIRR] = useState(false);
+  const [showMOIC, setShowMOIC] = useState(true);
+
   // Find currently selected vehicle (if not 'all')
   const selectedVehicle = useMemo(() => {
     return vehicles.find(v => v.id === selectedVehicleId) || null;
@@ -93,25 +102,26 @@ export default function DashboardTab({
     return `₦${val}`;
   };
 
-  // Custom tooltips to present numbers beautifully
+  // Custom tooltips to present numbers beautifully and handle dynamic shifting of data rows
   const CustomPerformanceTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div id="chart-tooltip-perf" className="p-3 bg-slate-900 border border-slate-750 text-white rounded-lg shadow-xl text-xs space-y-1.5 font-sans">
-          <p className="font-bold text-slate-350">{label}</p>
-          <div className="space-y-1">
-            <p className="flex justify-between gap-6 text-cyan-400">
-              <span className="font-medium">Cumulative Dividends:</span>
-              <span className="font-mono font-bold">₦{payload[0]?.value?.toLocaleString()}</span>
-            </p>
-            <p className="flex justify-between gap-6 text-slate-300">
-              <span className="font-medium">Total Cost (TCO):</span>
-              <span className="font-mono font-bold">₦{payload[1]?.value?.toLocaleString()}</span>
-            </p>
-            <p className="flex justify-between gap-6 text-amber-400">
-              <span className="font-medium">Resale Book Value:</span>
-              <span className="font-mono font-bold">₦{payload[2]?.value?.toLocaleString()}</span>
-            </p>
+          <p className="font-bold text-slate-400">{label}</p>
+          <div className="space-y-1.5">
+            {payload.map((item: any) => {
+              const colorClass = item.dataKey === 'Dividends' 
+                ? 'text-cyan-400' 
+                : item.dataKey === 'TCO' 
+                  ? 'text-rose-400' 
+                  : 'text-amber-400';
+              return (
+                <p key={item.dataKey} className={`flex justify-between gap-6 ${colorClass}`}>
+                  <span className="font-medium">{item.name}:</span>
+                  <span className="font-mono font-bold">₦{item.value?.toLocaleString()}</span>
+                </p>
+              );
+            })}
           </div>
         </div>
       );
@@ -123,20 +133,22 @@ export default function DashboardTab({
     if (active && payload && payload.length) {
       return (
         <div id="chart-tooltip-ratios" className="p-3 bg-slate-900 border border-slate-750 text-white rounded-lg shadow-xl text-xs space-y-1.5 font-sans">
-          <p className="font-bold text-slate-350">{label}</p>
-          <div className="space-y-1">
-            <p className="flex justify-between gap-6 text-emerald-400">
-              <span className="font-medium">Operational ROI:</span>
-              <span className="font-mono font-bold">{payload[0]?.value}%</span>
-            </p>
-            <p className="flex justify-between gap-6 text-cyan-400">
-              <span className="font-medium">Hold-Period IRR:</span>
-              <span className="font-mono font-bold">{payload[1]?.value}%</span>
-            </p>
-            <p className="flex justify-between gap-6 text-purple-400">
-              <span className="font-medium">Compounded MOIC:</span>
-              <span className="font-mono font-bold">{payload[2]?.value}x</span>
-            </p>
+          <p className="font-bold text-slate-405">{label}</p>
+          <div className="space-y-1.5">
+            {payload.map((item: any) => {
+              const colorClass = item.dataKey === 'ROI'
+                ? 'text-emerald-400'
+                : item.dataKey === 'IRR'
+                  ? 'text-cyan-405'
+                  : 'text-purple-400';
+              const suffix = item.dataKey === 'MOIC' ? 'x' : '%';
+              return (
+                <p key={item.dataKey} className={`flex justify-between gap-6 ${colorClass}`}>
+                  <span className="font-medium">{item.name}:</span>
+                  <span className="font-mono font-bold">{item.value}{suffix}</span>
+                </p>
+              );
+            })}
           </div>
         </div>
       );
@@ -180,7 +192,8 @@ export default function DashboardTab({
                 title="Committed Capital"
                 value={fmtCurr(summary.totalPurchaseValue)}
                 subtext="Fleet capital pool allocation"
-                icon={<Database className="w-5 h-5 text-cyan-500" />}
+                icon={<Database className="w-5 h-5" />}
+                accent="cyan"
               />
               <MetricCard
                 id="ann-gross"
@@ -189,7 +202,8 @@ export default function DashboardTab({
                 subtext="Current gross annual forecast"
                 trend="Escalating"
                 trendType="neutral"
-                icon={<Coins className="w-5 h-5 text-emerald-500" />}
+                icon={<Coins className="w-5 h-5" />}
+                accent="emerald"
               />
               <MetricCard
                 id="avg-roi"
@@ -198,7 +212,8 @@ export default function DashboardTab({
                 subtext="Cumulative cash-flow ROI"
                 trend="+Compounding"
                 trendType="positive"
-                icon={<TrendingUp className="w-5 h-5 text-cyan-500" />}
+                icon={<TrendingUp className="w-5 h-5" />}
+                accent="amber"
               />
               <MetricCard
                 id="avg-irr"
@@ -207,7 +222,8 @@ export default function DashboardTab({
                 subtext="Avg holding-period IRR"
                 trend="Solver Live"
                 trendType="positive"
-                icon={<Scale className="w-5 h-5 text-emerald-500" />}
+                icon={<Scale className="w-5 h-5" />}
+                accent="rose"
               />
               <MetricCard
                 id="fleet-moic"
@@ -216,7 +232,8 @@ export default function DashboardTab({
                 subtext="Multiple on invested cap"
                 trend={summary.averageMoic > 1 ? 'Profitable' : 'Recouping'}
                 trendType={summary.averageMoic > 1 ? 'positive' : 'neutral'}
-                icon={<ShieldCheck className="w-5 h-5 text-violet-500" />}
+                icon={<ShieldCheck className="w-5 h-5" />}
+                accent="violet"
               />
             </div>
           );
@@ -244,14 +261,53 @@ export default function DashboardTab({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Chart 1: Long-term compounding capital projection */}
               <div className="glass-panel rounded-3xl p-6 space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5 font-sans">
-                    <BarChart2 className="w-4 h-4 text-cyan-600" />
-                    Long-Term Performance & TCO Analytics
-                  </h3>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">
-                    Visualizes cumulative investor yields (Dividends) relative to physical assets resale curves and total compounded cost curves over 10 years.
-                  </p>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5 font-sans">
+                      <BarChart2 className="w-4 h-4 text-cyan-600 animate-pulse" />
+                      Long-Term Performance & TCO Analytics
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      Visualizes cumulative investor yields relative to physical asset resale curves and total compounded opex cost.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tactical Legend Toggle Tills */}
+                <div className="flex flex-wrap gap-2 py-1.5 border-y border-slate-100/10 dark:border-white/5">
+                  <button
+                    onClick={() => setShowDividends(prev => prev && !showTCO && !showResale ? prev : !prev)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+                      showDividends
+                        ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/30'
+                        : 'bg-transparent text-slate-400 dark:text-slate-500 border-slate-200/50 dark:border-white/5 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full bg-cyan-500 ${showDividends ? 'animate-pulse' : ''}`} />
+                    Cumulative Dividends
+                  </button>
+                  <button
+                    onClick={() => setShowTCO(prev => prev && !showDividends && !showResale ? prev : !prev)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+                      showTCO
+                        ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30'
+                        : 'bg-transparent text-slate-400 dark:text-slate-500 border-slate-200/50 dark:border-white/5 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full bg-rose-500 ${showTCO ? 'animate-pulse' : ''}`} />
+                    Total Cost (TCO)
+                  </button>
+                  <button
+                    onClick={() => setShowResale(prev => prev && !showDividends && !showTCO ? prev : !prev)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+                      showResale
+                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                        : 'bg-transparent text-slate-400 dark:text-slate-500 border-slate-200/50 dark:border-white/5 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full bg-amber-500 ${showResale ? 'animate-pulse' : ''}`} />
+                    Residual Salvage Value
+                  </button>
                 </div>
 
                 <div className="h-72 w-full font-mono text-[10px]">
@@ -263,14 +319,20 @@ export default function DashboardTab({
                           <stop offset="95%" stopColor="#0891b2" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid stroke="#f1f5f9" strokeDasharray="3 3" vertical={false} className="dark:stroke-slate-800/20" />
+                      <CartesianGrid stroke="#f1f5f9" strokeDasharray="3 3" vertical={false} className="dark:stroke-slate-800/10" />
                       <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} axisLine={false} />
                       <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} tickFormatter={(val) => `₦${(val / 1000).toFixed(0)}k`} />
                       <Tooltip content={<CustomPerformanceTooltip />} />
-                      <Legend iconType="circle" wrapperStyle={{ paddingTop: 10 }} />
-                      <Area type="monotone" name="Cumulative Dividends" dataKey="Dividends" stroke="#0891b2" strokeWidth={2} fillOpacity={1} fill="url(#divGradient)" />
-                      <Line type="monotone" name="Total Cost of Ownership" dataKey="TCO" stroke="#ef4444" strokeWidth={1.5} dot={false} strokeDasharray="4 4" />
-                      <Line type="monotone" name="Residual Salvage Value" dataKey="ResaleValue" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                      
+                      {showDividends && (
+                        <Area type="monotone" name="Cumulative Dividends" dataKey="Dividends" stroke="#0891b2" strokeWidth={2.5} fillOpacity={1} fill="url(#divGradient)" />
+                      )}
+                      {showTCO && (
+                        <Line type="monotone" name="Total Cost of Ownership" dataKey="TCO" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="4 4" />
+                      )}
+                      {showResale && (
+                        <Line type="monotone" name="Residual Salvage Value" dataKey="ResaleValue" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3 }} />
+                      )}
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
@@ -278,31 +340,75 @@ export default function DashboardTab({
 
               {/* Chart 2: Profitability ratios (ROI, IRR, MOIC) over time */}
               <div className="glass-panel rounded-3xl p-6 space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5 font-sans">
-                    <Percent className="w-4 h-4 text-cyan-600 animate-pulse" />
-                    Yield Ratios: ROI vs Compounding IRR vs MOIC
-                  </h3>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">
-                    Contrast operational cash yield index (ROI), Internal Rate of Return (IRR), and total compounded investment return multiple (MOIC) over time.
-                  </p>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5 font-sans">
+                      <Percent className="w-4 h-4 text-emerald-600 animate-pulse" />
+                      Yield Ratios: ROI vs Compounding IRR vs MOIC
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      Contrast operational cash yield indexes, holding-period IRR solvers, and investment return multiples.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tactical Ratio Legend Toggle Tills */}
+                <div className="flex flex-wrap gap-2 py-1.5 border-y border-slate-100/10 dark:border-white/5">
+                  <button
+                    onClick={() => setShowROI(prev => prev && !showIRR && !showMOIC ? prev : !prev)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+                      showROI
+                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                        : 'bg-transparent text-slate-400 dark:text-slate-500 border-slate-200/50 dark:border-white/5 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 ${showROI ? 'animate-pulse' : ''}`} />
+                    Operational ROI (%)
+                  </button>
+                  <button
+                    onClick={() => setShowIRR(prev => prev && !showROI && !showMOIC ? prev : !prev)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+                      showIRR
+                        ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-405 border-cyan-500/30'
+                        : 'bg-transparent text-slate-400 dark:text-slate-500 border-slate-200/50 dark:border-white/5 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full bg-cyan-550 ${showIRR ? 'animate-pulse' : ''}`} />
+                    Compounding IRR (%)
+                  </button>
+                  <button
+                    onClick={() => setShowMOIC(prev => prev && !showROI && !showIRR ? prev : !prev)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+                      showMOIC
+                        ? 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30'
+                        : 'bg-transparent text-slate-400 dark:text-slate-500 border-slate-200/50 dark:border-white/5 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full bg-purple-500 ${showMOIC ? 'animate-pulse' : ''}`} />
+                    Compounded MOIC (x)
+                  </button>
                 </div>
 
                 <div className="h-72 w-full font-mono text-[10px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-                      <CartesianGrid stroke="#f1f5f9" strokeDasharray="3 3" vertical={false} className="dark:stroke-slate-800/20" />
+                      <CartesianGrid stroke="#f1f5f9" strokeDasharray="3 3" vertical={false} className="dark:stroke-slate-800/10" />
                       <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} axisLine={false} />
                       {/* Primary Y Axis for ROI & RII Percentages */}
                       <YAxis yAxisId="percent" stroke="#10b981" tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} />
                       {/* Secondary Y Axis for MOIC multiple */}
                       <YAxis yAxisId="multiple" orientation="right" stroke="#8b5cf6" tickLine={false} axisLine={false} tickFormatter={(val) => `${val}x`} />
                       <Tooltip content={<CustomRatiosTooltip />} />
-                      <Legend iconType="circle" wrapperStyle={{ paddingTop: 10 }} />
                       
-                      <Line yAxisId="percent" type="monotone" name="Operational ROI (%)" dataKey="ROI" stroke="#10b981" strokeWidth={2} dot={{ r: 2 }} />
-                      <Line yAxisId="percent" type="monotone" name="Compounding IRR (%)" dataKey="IRR" stroke="#06b6d4" strokeWidth={2} dot={false} />
-                      <Line yAxisId="multiple" type="monotone" name="Investment MOIC (x)" dataKey="MOIC" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 3 }} />
+                      {showROI && (
+                        <Line yAxisId="percent" type="monotone" name="Operational ROI (%)" dataKey="ROI" stroke="#10b981" strokeWidth={2.5} dot={{ r: 2 }} />
+                      )}
+                      {showIRR && (
+                        <Line yAxisId="percent" type="monotone" name="Compounding IRR (%)" dataKey="IRR" stroke="#06b6d4" strokeWidth={2.5} dot={false} />
+                      )}
+                      {showMOIC && (
+                        <Line yAxisId="multiple" type="monotone" name="Investment MOIC (x)" dataKey="MOIC" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 3 }} />
+                      )}
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>

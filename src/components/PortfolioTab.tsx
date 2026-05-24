@@ -261,7 +261,7 @@ export default function PortfolioTab({
           <div>
             <h2 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <PlusCircle className="w-5 h-5 text-cyan-600 dark:text-cyan-400 animate-pulse" />
-              Acquire Transport Vehicle (Naira Asset)
+              Acquire Transport Vehicle
             </h2>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               Configure baseline purchase capital, driver allowances, daily local ticketing/union dues, and model targeted returns.
