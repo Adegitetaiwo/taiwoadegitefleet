@@ -25,6 +25,8 @@ interface LeftAssetSidebarProps {
   selectedVehicleId: string;
   onSelectVehicleId: (id: string) => void;
   onUpdateVehicle: (updated: Vehicle) => void;
+  onlySelector?: boolean;
+  onlyForm?: boolean;
 }
 
 export default function LeftAssetSidebar({
@@ -32,6 +34,8 @@ export default function LeftAssetSidebar({
   selectedVehicleId,
   onSelectVehicleId,
   onUpdateVehicle,
+  onlySelector = false,
+  onlyForm = false,
 }: LeftAssetSidebarProps) {
   // Local state for the editable fields of the currently selected vehicle
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
@@ -168,64 +172,67 @@ export default function LeftAssetSidebar({
     <div id="left-asset-sidebar" className="flex flex-col space-y-6">
       
       {/* SECTION 1: ASSET CONTEXT SWITCHER */}
-      <div className="glass-panel rounded-3xl p-5 space-y-4 shadow-sm border border-slate-200/50 dark:border-white/5">
-        <div>
-          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-cyan-500" />
-            Active Modeling Filter
-          </h3>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
-            Isolate an acquired asset to drill down on its cash flows.
-          </p>
-        </div>
+      {!onlyForm && (
+        <div className="glass-panel rounded-3xl p-5 space-y-4 shadow-sm border border-slate-200/50 dark:border-white/5">
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-cyan-500" />
+              Active Modeling Filter
+            </h3>
+            <p className="text-[10px] text-slate-400 dark:text-slate-505 mt-0.5">
+              Isolate an acquired asset to drill down on its cash flows.
+            </p>
+          </div>
 
-        <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
-          {/* Aggregate Option */}
-          <button
-            id="sidebar-select-all"
-            type="button"
-            onClick={() => onSelectVehicleId('all')}
-            className={`w-full text-left px-3.5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
-              selectedVehicleId === 'all'
-                ? 'bg-blue-600 border-blue-500 text-white shadow-md'
-                : 'bg-white/45 dark:bg-[#080c14]/45 border-slate-200/50 dark:border-white/5 text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${selectedVehicleId === 'all' ? 'bg-white' : 'bg-cyan-505 bg-cyan-500'}`} />
-              Full Fleet Portfolio (Aggregate)
-            </span>
-            <span className="text-[10px] opacity-75">{vehicles.length} assets</span>
-          </button>
-
-          {/* Individual Assets */}
-          {vehicles.map((v) => (
+          <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+            {/* Aggregate Option */}
             <button
-              id={`sidebar-select-${v.id}`}
-              key={v.id}
+              id="sidebar-select-all"
               type="button"
-              onClick={() => onSelectVehicleId(v.id)}
-              className={`w-full text-left px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center justify-between border cursor-pointer ${
-                selectedVehicleId === v.id
-                  ? 'bg-cyan-600/10 dark:bg-cyan-500/15 border-cyan-500 text-cyan-800 dark:text-cyan-300 shadow-sm'
-                  : 'bg-white/40 dark:bg-[#080c14]/30 border-slate-200/40 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5'
+              onClick={() => onSelectVehicleId('all')}
+              className={`w-full text-left px-3.5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                selectedVehicleId === 'all'
+                  ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                  : 'bg-white/45 dark:bg-[#080c14]/45 border-slate-200/50 dark:border-white/5 text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'
               }`}
             >
-              <div className="flex flex-col min-w-0 pr-2">
-                <span className="font-bold truncate text-[11px] leading-snug">{v.name}</span>
-                <span className="text-[9px] opacity-75 truncate uppercase tracking-wider">{v.type}</span>
-              </div>
-              <span className="font-mono text-[10px] font-bold shrink-0">
-                ₦{(v.purchasePrice || 0).toLocaleString()}
+              <span className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${selectedVehicleId === 'all' ? 'bg-white' : 'bg-cyan-500'}`} />
+                Full Fleet Portfolio (Aggregate)
               </span>
+              <span className="text-[10px] opacity-75">{vehicles.length} assets</span>
             </button>
-          ))}
+
+            {/* Individual Assets */}
+            {vehicles.map((v) => (
+              <button
+                id={`sidebar-select-${v.id}`}
+                key={v.id}
+                type="button"
+                onClick={() => onSelectVehicleId(v.id)}
+                className={`w-full text-left px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center justify-between border cursor-pointer ${
+                  selectedVehicleId === v.id
+                    ? 'bg-cyan-600/10 dark:bg-cyan-500/15 border-cyan-500 text-cyan-800 dark:text-cyan-300 shadow-sm'
+                    : 'bg-white/40 dark:bg-[#080c14]/30 border-slate-200/40 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5'
+                }`}
+              >
+                <div className="flex flex-col min-w-0 pr-2">
+                  <span className="font-bold truncate text-[11px] leading-snug">{v.name}</span>
+                  <span className="text-[9px] opacity-75 truncate uppercase tracking-wider">{v.type}</span>
+                </div>
+                <span className="font-mono text-[10px] font-bold shrink-0">
+                  ₦{(v.purchasePrice || 0).toLocaleString()}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* SECTION 2: EDIT ASSUMPTIONS FORM */}
-      {editingVehicle ? (
-        <form onSubmit={handleSave} className="glass-panel rounded-3xl p-5 md:p-6 space-y-5 shadow-sm border border-slate-200/55 dark:border-white/5 animate-fade-in">
+      {!onlySelector && (
+        editingVehicle ? (
+          <form onSubmit={handleSave} className="glass-panel text-left rounded-3xl p-5 md:p-6 space-y-5 shadow-sm border border-slate-200/55 dark:border-white/5 animate-fade-in">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 dark:text-white flex items-center gap-1.5">
@@ -568,7 +575,7 @@ export default function LeftAssetSidebar({
             Currently displaying aggregate modeling for the entire fleet portfolio. To edit parameters, select an individual asset listed above.
           </p>
         </div>
-      )}
+      ))}
     </div>
   );
 }

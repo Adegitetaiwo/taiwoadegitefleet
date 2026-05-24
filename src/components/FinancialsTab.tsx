@@ -129,8 +129,19 @@ export default function FinancialsTab({
   return (
     <div id="financials-tab-layout" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
-      {/* LEFT COLUMN: ACTIVE MODEL SELECTOR & REAL-TIME ASSUMPTIONS MODIFIER */}
-      <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 h-fit z-20">
+      {/* MOBILE ONLY: Fleet selector displays at the very top of the page */}
+      <div className="block lg:hidden z-20">
+        <LeftAssetSidebar
+          vehicles={vehicles}
+          selectedVehicleId={selectedVehicleId}
+          onSelectVehicleId={onSelectVehicleId}
+          onUpdateVehicle={onUpdateVehicle}
+          onlySelector={true}
+        />
+      </div>
+
+      {/* DESKTOP ONLY: Combined Sidebar (Selector + Form) displays on the left side */}
+      <div className="hidden lg:block lg:col-span-4 lg:sticky lg:top-24 space-y-6 h-fit z-20">
         <LeftAssetSidebar
           vehicles={vehicles}
           selectedVehicleId={selectedVehicleId}
@@ -139,7 +150,7 @@ export default function FinancialsTab({
         />
       </div>
 
-      {/* RIGHT COLUMN: CORE FINANCIAL SHEET */}
+      {/* CORE FINANCIAL SHEET (Middle on mobile, Right on desktop) */}
       <div className="lg:col-span-8 space-y-8">
         
         {/* ACTION PANEL */}
@@ -365,6 +376,17 @@ export default function FinancialsTab({
             </div>
           </div>
         )}
+      </div>
+
+      {/* MOBILE ONLY: edit assumptions inputs form displays at the bottom, under the charts and metrics */}
+      <div className="block lg:hidden mt-4">
+        <LeftAssetSidebar
+          vehicles={vehicles}
+          selectedVehicleId={selectedVehicleId}
+          onSelectVehicleId={onSelectVehicleId}
+          onUpdateVehicle={onUpdateVehicle}
+          onlyForm={true}
+        />
       </div>
     </div>
   );

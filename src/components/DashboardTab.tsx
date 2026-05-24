@@ -147,8 +147,19 @@ export default function DashboardTab({
   return (
     <div id="dashboard-tab-layout" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
-      {/* LEFT COLUMN: ACTIVE MODEL SELECTOR & REAL-TIME ASSUMPTIONS MODIFIER */}
-      <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 h-fit z-20">
+      {/* MOBILE ONLY: Fleet selector displays at the very top of the page */}
+      <div className="block lg:hidden z-20">
+        <LeftAssetSidebar
+          vehicles={vehicles}
+          selectedVehicleId={selectedVehicleId}
+          onSelectVehicleId={onSelectVehicleId}
+          onUpdateVehicle={onUpdateVehicle}
+          onlySelector={true}
+        />
+      </div>
+
+      {/* DESKTOP ONLY: Combined Sidebar (Selector + Form) displays on the left side */}
+      <div className="hidden lg:block lg:col-span-4 lg:sticky lg:top-24 space-y-6 h-fit z-20">
         <LeftAssetSidebar
           vehicles={vehicles}
           selectedVehicleId={selectedVehicleId}
@@ -157,15 +168,13 @@ export default function DashboardTab({
         />
       </div>
 
-      {/* RIGHT COLUMN: CORE DASHBOARD VISUALIZERS */}
+      {/* CORE DASHBOARD VISUALIZERS (Middle on mobile, Right on desktop) */}
       <div className="lg:col-span-8 space-y-8">
         
         {/* 1. KEY KPI HERO BAR */}
         {(() => {
-          const year1AccountingProfit = projections[0]?.netProfit || 0;
-          const year1CashProfit = summary.annualRevenue - summary.annualOperatingCost;
           return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <MetricCard
                 id="cap-alloc"
                 title="Committed Capital"
@@ -181,24 +190,6 @@ export default function DashboardTab({
                 trend="Escalating"
                 trendType="neutral"
                 icon={<Coins className="w-5 h-5 text-emerald-500" />}
-              />
-              <MetricCard
-                id="yr1-acct-profit"
-                title="Accounting Profit (Y1)"
-                value={fmtCurr(year1AccountingProfit)}
-                subtext="After operating & deprec."
-                trend={year1AccountingProfit >= 0 ? 'Net Surplus' : 'Net Deficit'}
-                trendType={year1AccountingProfit >= 0 ? 'positive' : 'negative'}
-                icon={<Scale className="w-5 h-5 text-cyan-600" />}
-              />
-              <MetricCard
-                id="yr1-cash-profit"
-                title="Cash Profit (Y1)"
-                value={fmtCurr(year1CashProfit)}
-                subtext="Operating liquid cash flow"
-                trend={year1CashProfit >= 0 ? 'Positive Cash' : 'Burn Rate'}
-                trendType={year1CashProfit >= 0 ? 'positive' : 'negative'}
-                icon={<Coins className="w-5 h-5 text-teal-500" />}
               />
               <MetricCard
                 id="avg-roi"
@@ -421,6 +412,17 @@ export default function DashboardTab({
             </div>
           </div>
         )}
+      </div>
+
+      {/* MOBILE ONLY: edit assumptions inputs form displays at the bottom, under the charts and metrics */}
+      <div className="block lg:hidden mt-4">
+        <LeftAssetSidebar
+          vehicles={vehicles}
+          selectedVehicleId={selectedVehicleId}
+          onSelectVehicleId={onSelectVehicleId}
+          onUpdateVehicle={onUpdateVehicle}
+          onlyForm={true}
+        />
       </div>
     </div>
   );
